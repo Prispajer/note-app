@@ -3,16 +3,14 @@ import Sidebar from "./components/Sidebar";
 import Editor from "./components/Editor";
 import Split from "react-split";
 import { nanoid } from "nanoid";
-import { onSnapshot, addDoc } from "firebase/firestore";
-import { notesCollection } from "./firebase";
+import { onSnapshot, addDoc, doc, deleteDoc } from "firebase/firestore";
+import { notesCollection, db } from "./firebase";
 
 export default function App() {
   const [notes, setNotes] = React.useState(
     () => JSON.parse(localStorage.getItem("notes")) || []
   );
-  const [currentNoteId, setCurrentNoteId] = React.useState(
-    (notes[0] && notes[0].id) || ""
-  );
+  const [currentNoteId, setCurrentNoteId] = React.useState("");
 
   React.useEffect(() => {
     const unsubscribe = onSnapshot(notesCollection, function (snapshot) {
@@ -24,6 +22,12 @@ export default function App() {
     });
     return unsubscribe;
   }, []);
+
+  React.useEffect(() => {
+    if (!currentNoteId) {
+      setCurrentNoteId(notes.length > 0 ? notes[0].id : undefined);
+    }
+  });
 
   const currentNote =
     notes.find((note) => note.id === currentNoteId) || notes[0];
@@ -37,9 +41,9 @@ export default function App() {
     setCurrentNoteId(newNoteRef.id);
   }
 
-  function deleteNote(event, noteId) {
-    event.stopPropagation();
-    setNotes((prevNote) => prevNote.filter((note) => note.id !== noteId));
+  async function deleteNote(noteId) {
+    const docRef = doc(db, "notes", noteId);
+    await deleteDoc(docRef);
   }
 
   function updateNote(text) {
@@ -67,9 +71,8 @@ export default function App() {
             newNote={createNewNote}
             deleteNote={deleteNote}
           />
-          {currentNoteId && notes.length > 0 && (
-            <Editor currentNote={currentNote} updateNote={updateNote} />
-          )}
+          (
+          <Editor currentNote={currentNote} updateNote={updateNote} />)
         </Split>
       ) : (
         <div className="no-notes">
