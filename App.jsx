@@ -3,7 +3,7 @@ import Sidebar from "./components/Sidebar";
 import Editor from "./components/Editor";
 import Split from "react-split";
 import { nanoid } from "nanoid";
-import { onSnapshot, addDoc, doc, deleteDoc } from "firebase/firestore";
+import { onSnapshot, addDoc, doc, deleteDoc, setDoc } from "firebase/firestore";
 import { notesCollection, db } from "./firebase";
 
 export default function App() {
@@ -42,22 +42,13 @@ export default function App() {
   }
 
   async function deleteNote(noteId) {
-    const docRef = doc(db, "notes", noteId);
-    await deleteDoc(docRef);
+    const docData = doc(db, "notes", noteId);
+    await deleteDoc(docData);
   }
 
-  function updateNote(text) {
-    let newArray = [];
-    setNotes((oldNotes) => {
-      for (let i = 0; i < oldNotes.length; i++) {
-        if (oldNotes[i].id === currentNoteId) {
-          newArray.unshift({ ...oldNotes[i], body: text });
-        } else {
-          newArray.push(oldNotes[i]);
-        }
-      }
-      return newArray;
-    });
+  async function updateNote(text) {
+    const docData = doc(db, "notes", currentNoteId);
+    await setDoc(docData, { body: text }, { merge: true });
   }
 
   return (
