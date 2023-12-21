@@ -12,6 +12,11 @@ export default function App() {
   );
   const [currentNoteId, setCurrentNoteId] = React.useState("");
 
+  const [tempNoteText, setTempNoteText] = React.useState("");
+
+  const currentNote =
+    notes.find((note) => note.id === currentNoteId) || notes[0];
+
   React.useEffect(() => {
     const unsubscribe = onSnapshot(notesCollection, function (snapshot) {
       const notesArray = snapshot.docs.map((doc) => ({
@@ -31,8 +36,20 @@ export default function App() {
     }
   });
 
-  const currentNote =
-    notes.find((note) => note.id === currentNoteId) || notes[0];
+  React.useEffect(() => {
+    if (currentNote) {
+      setTempNoteText(currentNote.body);
+    }
+  }, [currentNote]);
+
+  React.useEffect(() => {
+    const timeOutId = setTimeout(() => {
+      if (tempNoteText !== currentNote.body) {
+        updateNote(tempNoteText);
+      }
+    }, 500);
+    return () => clearTimeout(timeOutId);
+  }, [tempNoteText]);
 
   async function createNewNote() {
     const newNote = {
@@ -71,7 +88,11 @@ export default function App() {
             deleteNote={deleteNote}
           />
           (
-          <Editor currentNote={currentNote} updateNote={updateNote} />)
+          <Editor
+            tempNoteText={tempNoteText}
+            setTempNoteText={setTempNoteText}
+          />
+          )
         </Split>
       ) : (
         <div className="no-notes">
