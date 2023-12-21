@@ -87,12 +87,10 @@ export default function App() {
             newNote={createNewNote}
             deleteNote={deleteNote}
           />
-          (
           <Editor
             tempNoteText={tempNoteText}
             setTempNoteText={setTempNoteText}
           />
-          )
         </Split>
       ) : (
         <div className="no-notes">
