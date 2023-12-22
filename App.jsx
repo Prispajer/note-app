@@ -27,6 +27,23 @@ export default function App() {
     });
     return unsubscribe;
   }, []);
+  React.useEffect(() => {
+    const unsubscribe = onSnapshot(notesCollection, function (snapshot) {
+      const notesArray = snapshot.docs.map((doc) => ({
+        ...doc.data(),
+        id: doc.id,
+      }));
+      setNotes(notesArray);
+
+      if (
+        currentNoteId &&
+        !notesArray.find((note) => note.id === currentNoteId)
+      ) {
+        setCurrentNoteId(undefined);
+      }
+    });
+    return unsubscribe;
+  }, [currentNoteId]);
 
   const sortedNotes = notes.sort((one, two) => two.updatedAt - one.updatedAt);
 
@@ -64,9 +81,9 @@ export default function App() {
 
   async function deleteNote(noteId) {
     const docData = doc(db, "notes", noteId);
+
     await deleteDoc(docData);
   }
-
   async function updateNote(text) {
     const docData = doc(db, "notes", currentNoteId);
     await setDoc(
